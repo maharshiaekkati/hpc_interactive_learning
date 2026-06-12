@@ -543,12 +543,41 @@ const MODULE_GUIDES = {
 const KEY = "hpc-use-trainer-v1";
 function loadState(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
 function saveState(){ localStorage.setItem(KEY, JSON.stringify(state)); }
-let state = loadState();
-if(!state.selected || !MODULES.some(m=>m.id===state.selected)) state.selected = "USE1.1";
-if(!state.completed || typeof state.completed !== "object") state.completed = {};
-if(!state.answers || typeof state.answers !== "object") state.answers = {}; // key `${id}-${i}` -> chosen index
-if(!state.viewed || typeof state.viewed !== "object") state.viewed = {};
-state.viewed[state.selected] = true;
+function freshState(){
+  return { selected: "USE1.1", completed: {}, answers: {}, viewed: { "USE1.1": true } };
+}
+function isPlainObject(value){
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+function normalizeState(raw){
+  const next = freshState();
+  if(!isPlainObject(raw)) return next;
+  if(typeof raw.selected === "string" && MODULES.some(m=>m.id===raw.selected)) next.selected = raw.selected;
+  if(isPlainObject(raw.completed)){
+    for(const id of MODULES.map(m=>m.id)){
+      if(raw.completed[id] === true) next.completed[id] = true;
+    }
+  }
+  if(isPlainObject(raw.answers)){
+    for(const m of MODULES){
+      m.questions.forEach((q,i)=>{
+        const key = m.id + "-" + i;
+        const value = raw.answers[key];
+        if(Number.isInteger(value) && value >= 0 && value < q.options.length){
+          next.answers[key] = value;
+        }
+      });
+    }
+  }
+  if(isPlainObject(raw.viewed)){
+    for(const id of MODULES.map(m=>m.id)){
+      if(raw.viewed[id] === true) next.viewed[id] = true;
+    }
+  }
+  next.viewed[next.selected] = true;
+  return next;
+}
+let state = normalizeState(loadState());
 
 function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
@@ -765,10 +794,25 @@ document.addEventListener("click", function(e){
   if(t.dataset.toggle){ const id=state.selected; state.completed[id]=!state.completed[id]; render(); return; }
   if(t.dataset.next){ const idx=MODULES.findIndex(m=>m.id===state.selected); if(idx<MODULES.length-1){ state.selected=MODULES[idx+1].id; state.viewed[state.selected] = true; render(); window.scrollTo({top:0,behavior:"smooth"});} return; }
   if(t.dataset.retry){ delete state.answers[t.dataset.retry]; render(); return; }
-  if(t.dataset.reset){ localStorage.removeItem(KEY); state = { selected: "USE1.1", completed: {}, answers: {}, viewed: {} }; render(); return; }
+  if(t.dataset.reset){ localStorage.removeItem(KEY); state = freshState(); render(); return; }
 });
 
-render();
+try {
+  render();
+} catch (err) {
+  console.error("Initial render failed, resetting trainer state.", err);
+  localStorage.removeItem(KEY);
+  state = freshState();
+  try {
+    render();
+  } catch (secondErr) {
+    console.error("Second render failed.", secondErr);
+    const root = document.getElementById("banner");
+    if(root){
+      root.innerHTML = '<div class="banner warn"><div class="bt">We hit a browser error</div>Refresh the page once. If it still looks blank, open the site in a fresh tab or clear this site\\'s stored browser data.</div>';
+    }
+  }
+}
 </script>
 </body>
 </html>
