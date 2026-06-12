@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HPC USE Trainer — Use of the HPC Environment</title>
+<meta name="description" content="Interactive trainer for the HPC Certification Forum USE skill tree (USE1–USE7)." />
+<style>
+  :root {
+    --bg: #0f1115;
+    --surface: #16181d;
+    --surface-2: #1c1f26;
+    --stroke: #2a2e37;
+    --stroke-2: #363b46;
+    --text: #e6e8ec;
+    --text-2: #a4abb8;
+    --text-3: #6f7785;
+    --accent: #4c8dff;
+    --accent-soft: #1f3a63;
+    --green: #3fb950;
+    --green-soft: #14361c;
+    --amber: #d29922;
+    --red: #f06d6d;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 64px; }
+  h1 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h2 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+  h3 { font-size: 14px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); }
+  p { margin: 0; }
+  a { color: var(--accent); }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em;
+    background: var(--surface-2); border: 1px solid var(--stroke); border-radius: 5px; padding: 1px 6px; }
+  .muted { color: var(--text-2); }
+  .small { font-size: 13px; }
+  .tertiary { color: var(--text-3); }
+  .divider { height: 1px; background: var(--stroke); border: 0; margin: 20px 0; }
+
+  .statgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+  .stat { background: var(--surface); border: 1px solid var(--stroke); border-radius: 10px; padding: 14px; }
+  .stat .v { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+  .stat .l { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+  .stat .v.good { color: var(--green); }
+  .stat .v.warn { color: var(--amber); }
+  .stat .v.bad { color: var(--red); }
+
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-3); margin-bottom: 6px; }
+  .bar { height: 10px; background: var(--surface-2); border-radius: 6px; overflow: hidden; }
+  .bar > i { display: block; height: 100%; background: var(--green); transition: width .3s ease; }
+
+  .navgroup { margin-bottom: 12px; }
+  .navgroup .lbl { font-size: 12px; font-weight: 600; color: var(--text-3); margin-bottom: 6px; }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill { cursor: pointer; user-select: none; font-size: 13px; padding: 4px 12px; border-radius: 999px;
+    background: var(--surface-2); border: 1px solid var(--stroke); color: var(--text-2); transition: all .12s; }
+  .pill:hover { border-color: var(--stroke-2); color: var(--text); }
+  .pill.active { background: var(--accent-soft); border-color: var(--accent); color: #fff; }
+  .pill .check { color: var(--green); font-weight: 700; margin-right: 4px; }
+  .pill.active .check { color: #fff; }
+
+  .module-head { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .spacer { flex: 1; }
+  .btn { cursor: pointer; font-size: 13px; padding: 5px 12px; border-radius: 7px; border: 1px solid var(--stroke-2);
+    background: var(--surface-2); color: var(--text); transition: all .12s; }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.ghost { background: transparent; border-color: transparent; color: var(--text-2); }
+  .btn.ghost:hover { color: var(--text); }
+
+  .outcome { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 6px; }
+  .outcome .arrow { color: var(--accent); font-weight: 700; }
+
+  table { width: 100%; border-collapse: collapse; border: 1px solid var(--stroke); border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--stroke); font-size: 14px; vertical-align: top; }
+  th { background: var(--surface-2); color: var(--text-3); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { white-space: nowrap; }
+
+  .card { background: var(--surface); border: 1px solid var(--stroke); border-radius: 12px; overflow: hidden; }
+  .card .ch { display: flex; justify-content: space-between; padding: 9px 14px; border-bottom: 1px solid var(--stroke);
+    font-size: 12px; color: var(--text-3); background: var(--surface-2); }
+  .card .cb { padding: 16px; }
+
+  .q { margin-bottom: 8px; }
+  .q .qt { font-weight: 600; margin-bottom: 8px; }
+  .opt { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--stroke-2);
+    border-radius: 8px; background: var(--surface-2); cursor: pointer; margin-bottom: 6px; user-select: none; transition: all .1s; }
+  .opt:hover { border-color: var(--stroke-2); background: #20242c; }
+  .opt.disabled { cursor: default; }
+  .opt.correct { border-color: var(--green); background: var(--green-soft); }
+  .opt.wrong { border-color: var(--red); background: #3a1a1a; }
+  .opt.dim { opacity: 0.5; }
+  .opt .letter { color: var(--text-3); font-weight: 700; width: 16px; }
+  .opt .tag { margin-left: auto; font-weight: 600; font-size: 13px; }
+  .opt .tag.c { color: var(--green); }
+  .opt .tag.w { color: var(--red); }
+
+  .callout { border-radius: 9px; padding: 11px 13px; font-size: 14px; margin-top: 8px; border: 1px solid var(--stroke); }
+  .callout.ok { background: var(--green-soft); border-color: #1f6b2b; }
+  .callout.info { background: var(--accent-soft); border-color: #2c548c; }
+  .callout .ct { font-weight: 700; margin-bottom: 3px; }
+  .callout .retry { margin-top: 8px; }
+
+  .banner { background: var(--green-soft); border: 1px solid #1f6b2b; border-radius: 12px; padding: 14px 16px; margin: 16px 0; }
+  .banner .bt { font-weight: 700; margin-bottom: 4px; }
+
+  @media (max-width: 620px) {
+    .statgrid { grid-template-columns: repeat(2, 1fr); }
+    td:first-child { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>USE — Use of the HPC Environment</h1>
+    <p class="muted">A complete interactive trainer for the HPC Certification Forum
+      <strong>USE</strong> competency branch — USE1 Cluster OS (its 8 subskills) through
+      USE7 Post-processing. Work through every module, drill the commands, and pass each quiz.</p>
+  </header>
+
+  <div class="statgrid" id="stats"></div>
+  <div>
+    <div class="progress-label"><span id="progLeft">Study progress</span><span id="progRight"></span></div>
+    <div class="bar"><i id="progBar" style="width:0%"></i></div>
+  </div>
+
+  <div id="banner"></div>
+
+  <hr class="divider" />
+  <nav id="nav"></nav>
+  <hr class="divider" />
+
+  <main id="panel"></main>
+
+  <hr class="divider" />
+  <p class="small tertiary">Source: HPC Certification Forum — USE "Use of the HPC Environment" skill tree
+    (<a href="https://www.hpc-certification.org/wiki/skill-tree/use/" target="_blank" rel="noopener">hpc-certification.org</a>),
+    modules USE1–USE7. Your progress is saved in this browser.</p>
+</div>
+
+<script>
+const MODULES = [
+  { id:"USE1.1", title:"Command Line Interface",
+    blurb:"HPC clusters are driven from a Linux CLI, usually the bash shell. You type a command, the shell parses it, runs a program, and prints the result. Pipes, redirection, wildcards, and environment variables are the foundation for everything else.",
+    outcomes:["Run basic commands to inspect and manipulate files","Chain programs with pipes and redirect input/output","Use wildcards (globbing) to act on many files at once","Read and set environment variables"],
+    commands:[["pwd","Print the current working directory"],["ls -lah","List files: long form, all (incl. hidden), human sizes"],["cd /path","Change directory (cd alone returns to $HOME)"],["cat / less","Print a file / page through it interactively"],["cmd > out.txt","Redirect stdout to a file (>> appends)"],["cmd1 | cmd2","Pipe stdout of cmd1 into stdin of cmd2"],["grep PATTERN f","Print lines in f matching PATTERN"],["echo $HOME","Expand and print an environment variable"],["man ls","Open the manual page for a command"]],
+    questions:[
+      {q:"Which symbol redirects a command's standard output into a file, overwriting it?",options:["|","<",">",">>"],answer:2,explain:"> redirects stdout to a file and overwrites it. >> appends, | pipes to another command, < feeds a file as stdin."},
+      {q:"What does the wildcard *.txt match?",options:["Only a file literally named *.txt","Every file ending in .txt in the current directory","All files recursively under the current directory","Hidden files starting with a dot"],answer:1,explain:"* is a glob matching any run of characters, so *.txt expands to all names ending in .txt in the current directory (not recursive, dotfiles excluded by default)."},
+      {q:"How do you read the value of the environment variable PATH?",options:["echo PATH","echo $PATH","print PATH","cat PATH"],answer:1,explain:"The shell expands $PATH to its value before echo runs. Without the $, echo prints the literal word PATH."}
+    ]},
+  { id:"USE1.2", title:"Shell Scripts",
+    blurb:"A shell script bundles a sequence of commands into a reusable file. With variables, conditionals, loops, and functions you automate repetitive cluster work — staging data, submitting jobs, post-processing results.",
+    outcomes:["Write a script with a shebang line and make it executable","Use variables, positional arguments, conditionals, and loops","Define and call functions"],
+    commands:[["#!/bin/bash","Shebang: tells the OS which interpreter to use"],["chmod +x s.sh","Make a script executable so ./s.sh runs it"],["name=value","Assign a variable (no spaces around =)"],["$1 $2 $@","First arg, second arg, all args"],["if [ \"$x\" -gt 0 ]; then","Numeric comparison in a conditional"],["for f in *.dat; do","Loop over files matching a glob"],["func() { ... }","Define a function; call it as func arg"],["$(command)","Command substitution: capture output into a value"]],
+    questions:[
+      {q:"What is the purpose of the first line #!/bin/bash in a script?",options:["It is a comment the shell ignores","It tells the OS which interpreter should run the file","It imports the bash standard library","It enables debug mode"],answer:1,explain:"The shebang (#!) on line 1 tells the kernel which interpreter to launch. Although # normally starts a comment, #! in line 1 is special."},
+      {q:"Inside a script, what does $1 refer to?",options:["The script's exit code","The number of arguments","The first positional argument passed to the script","The process ID"],answer:2,explain:"$1 is the first positional argument. $@ is all arguments, $# is the count, $? is the exit status of the last command."},
+      {q:"Why must assignment be written x=5 and not x = 5?",options:["Spaces are only allowed inside quotes","The shell would read x, =, and 5 as separate words/commands","= must be uppercase","It is purely a style preference"],answer:1,explain:"With spaces the shell treats x as a command and = 5 as its arguments. Assignment requires no spaces around the = sign."}
+    ]},
+  { id:"USE1.3", title:"UNIX File System Tree",
+    blurb:"Everything in UNIX hangs off a single root /. Knowing the standard directories and absolute vs relative paths lets you navigate confidently. On HPC, data locality matters: home, scratch, and project areas differ greatly in performance and quota.",
+    outcomes:["Sketch the standard directory layout under /","Distinguish absolute paths from relative paths","Reason about data locality on a shared cluster"],
+    commands:[["/","Root of the entire filesystem tree"],["/home/user","User home directories (quota-limited, backed up)"],["/bin /usr/bin","Essential and user command binaries"],["/etc","System-wide configuration files"],["/tmp","Temporary scratch space, often cleared on reboot"],[".  ..  ~","Current dir, parent dir, your home directory"],["/scratch","Fast HPC scratch (large, fast, not backed up)"],["realpath f","Resolve a path to its absolute canonical form"]],
+    questions:[
+      {q:"Which of these is an absolute path?",options:["../data/run1","data/run1","/home/user/data/run1","./run1"],answer:2,explain:"An absolute path starts at the root /. Paths beginning with ., .., or a bare name are relative to the current working directory."},
+      {q:"Where should you put large, frequently-read job data for best performance on a typical HPC system?",options:["Your /home directory","A fast /scratch or parallel filesystem area","/etc","/tmp on the login node"],answer:1,explain:"Home is usually small, quota-limited and backed up — not built for throughput. Scratch / parallel filesystems are tuned for large fast I/O (but typically not backed up)."},
+      {q:"What does the path component .. mean?",options:["The current directory","The parent directory","The root directory","The home directory"],answer:1,explain:".. is the parent directory, . is the current directory, ~ is your home, and / is the root."}
+    ]},
+  { id:"USE1.4", title:"Remote Access",
+    blurb:"You reach a cluster over the network with SSH, which gives an encrypted shell on a remote login node. Key-based authentication is safer and more convenient than passwords, and scp/rsync move data in and out.",
+    outcomes:["Connect to a remote host with SSH","Set up and use SSH key-based authentication","Transfer files to and from the cluster"],
+    commands:[["ssh user@host","Open an interactive shell on a remote host"],["ssh-keygen -t ed25519","Generate an SSH key pair"],["ssh-copy-id user@host","Install your public key on the remote host"],["scp file user@host:~/","Copy a file to the remote home directory"],["rsync -avz src/ host:dst/","Efficient, resumable directory sync"],["~/.ssh/config","Define host aliases, users, and options"],["ssh -L 8888:localhost:8888 host","Forward a local port to the remote"]],
+    questions:[
+      {q:"In SSH key-based authentication, which key do you copy to the remote server?",options:["The private key","The public key","Both keys","Neither — you type a password instead"],answer:1,explain:"The public key goes into the server's ~/.ssh/authorized_keys. The private key stays secret on your own machine and must never be shared."},
+      {q:"Which command efficiently synchronizes a directory to a remote host, transferring only changes?",options:["cat","rsync","ssh","grep"],answer:1,explain:"rsync compares source and destination and transfers only the differences, and can compress and resume — ideal for large datasets."},
+      {q:"What does ssh provide that telnet does not?",options:["Faster transfer speeds","An encrypted connection","Graphical login","Automatic file backup"],answer:1,explain:"SSH encrypts the whole session. telnet sends everything, including passwords, in clear text and should never be used."}
+    ]},
+  { id:"USE1.5", title:"Software Environment",
+    blurb:"HPC systems host many versions of many tools side by side. Environment Modules (module / Lmod) let you load and unload specific software versions, adjusting PATH and other variables on demand so builds and runs are reproducible.",
+    outcomes:["Use module commands to discover and load software","Switch between versions cleanly","Understand how modules manipulate the environment"],
+    commands:[["module avail","List all available software modules"],["module load gcc/12.2","Load a specific version into your environment"],["module list","Show currently loaded modules"],["module unload gcc","Remove a module from the environment"],["module swap a b","Replace one module with another"],["module purge","Unload everything for a clean slate"],["module show gcc","Inspect what a module changes (PATH, etc.)"]],
+    questions:[
+      {q:"What does module avail do?",options:["Loads the default software stack","Lists the software modules you can load","Deletes unused modules","Shows your disk quota"],answer:1,explain:"module avail lists everything installed that you can load. module list shows what is currently active."},
+      {q:"Primarily, how does loading a module change your shell?",options:["It reinstalls the software each time","It edits environment variables like PATH and LD_LIBRARY_PATH","It reboots the login node","It changes your password"],answer:1,explain:"Modules work by adjusting environment variables so the chosen version is found first. Nothing is installed or removed from disk."},
+      {q:"You loaded the wrong toolchain and want a completely clean environment. Which command?",options:["module avail","module purge","module show","module help"],answer:1,explain:"module purge unloads every loaded module at once, giving a clean starting point."}
+    ]},
+  { id:"USE1.6", title:"CLI File Editors",
+    blurb:"On a remote cluster you edit files in the terminal, so a CLI editor is essential. nano is beginner-friendly; vim and emacs are powerful and ubiquitous. vim is modal: you switch between a normal (command) mode and an insert mode.",
+    outcomes:["Open a file for editing in a CLI editor and save it","Explain why CLI editors are valuable on HPC systems","Navigate vim's modal interface at a basic level"],
+    commands:[["nano file","Simple editor; shortcuts shown at the bottom"],["Ctrl-O / Ctrl-X","nano: write out (save) / exit"],["vim file","Open vim (starts in normal mode)"],["i","vim: enter insert mode to type text"],["Esc","vim: return to normal mode"],[":w  :q  :wq","vim: write, quit, write-and-quit"],[":q!","vim: quit discarding unsaved changes"]],
+    questions:[
+      {q:"Why are CLI editors especially useful in an HPC environment?",options:["They render images better than GUI editors","They work over an SSH terminal with no graphical display","They automatically parallelize your code","They are the only programs allowed on compute nodes"],answer:1,explain:"Cluster access is typically a text-only SSH session. CLI editors run entirely in the terminal, so you edit files on the remote host without forwarding a GUI."},
+      {q:"vim starts in which mode, where letter keys are commands rather than text?",options:["Insert mode","Visual mode","Normal (command) mode","Replace mode"],answer:2,explain:"vim opens in normal mode. Press i to enter insert mode and type text, then Esc to return to normal mode."},
+      {q:"In vim, how do you save changes and quit?",options:[":q!",":wq","Ctrl-X","dd"],answer:1,explain:":wq writes the file and quits. :q! quits discarding changes, :w just saves, dd deletes a line."}
+    ]},
+  { id:"USE1.7", title:"Terminal Multiplexer",
+    blurb:"A terminal multiplexer (screen or tmux) keeps a session alive on the remote host even if your connection drops. You create a session, detach, log out, and later reattach to find long-running work exactly where you left it.",
+    outcomes:["Create a multiplexer session","Detach from a running session","Resume (reattach to) a previous session"],
+    commands:[["tmux","Start a new tmux session"],["tmux new -s work","Start a named session"],["Ctrl-b d","tmux: detach from the current session"],["tmux ls","List existing sessions"],["tmux attach -t work","Reattach to a named session"],["screen","Start a screen session (older alternative)"],["screen -r","Reattach to a detached screen session"]],
+    questions:[
+      {q:"What is the main benefit of using tmux or screen on a remote cluster?",options:["It encrypts your SSH traffic","Your session and processes survive a disconnect and can be reattached","It speeds up your code","It installs missing software automatically"],answer:1,explain:"A multiplexer keeps the session running on the host. If your SSH connection drops, work continues and you reattach later."},
+      {q:"Which sequence matches a typical multiplexer workflow?",options:["Attach, kill, reboot","Create a session, detach, later resume","Login, logout, reinstall","Compress, encrypt, transfer"],answer:1,explain:"The three core operations: create a session, detach from it (leaving it running), and resume/reattach later."},
+      {q:"In tmux, which default key sequence detaches you from the current session?",options:["Ctrl-c","Ctrl-b d","Ctrl-z",":wq"],answer:1,explain:"tmux uses a prefix key (default Ctrl-b) then a command key. Ctrl-b then d detaches, leaving the session running."}
+    ]},
+  { id:"USE1.8", title:"Background Processes & Signals",
+    blurb:"You can run jobs in the background, suspend and resume them, and control them with signals. Ctrl-C sends SIGINT (interrupt), Ctrl-Z sends SIGTSTP (suspend), and kill sends any signal by name or number to a PID.",
+    outcomes:["Start, list, and foreground/background jobs","Use Ctrl-Z and Ctrl-C with jobs and fg","Send signals (SIGINT, SIGTSTP, SIGKILL) with kill, by name or number"],
+    commands:[["command &","Run a command in the background"],["jobs","List jobs started from this shell"],["fg %1 / bg %1","Resume job 1 in the foreground / background"],["Ctrl-C","Send SIGINT (interrupt) to the foreground job"],["Ctrl-Z","Send SIGTSTP (suspend) to the foreground job"],["kill PID","Send SIGTERM (15) to a process by PID"],["kill -9 PID","Send SIGKILL (9) — cannot be caught or ignored"],["nohup cmd &","Run detached so it survives logout"]],
+    questions:[
+      {q:"Pressing Ctrl-C sends which signal to the foreground process?",options:["SIGKILL","SIGTSTP","SIGINT","SIGHUP"],answer:2,explain:"Ctrl-C sends SIGINT (interrupt), politely asking the program to stop. Ctrl-Z sends SIGTSTP (suspend)."},
+      {q:"Which signal cannot be caught, blocked, or ignored by a process?",options:["SIGINT (2)","SIGTSTP (20)","SIGKILL (9)","SIGTERM (15)"],answer:2,explain:"SIGKILL (9) is forcible termination the process cannot intercept. SIGTERM (15) is the polite default for kill and can be handled for clean shutdown."},
+      {q:"You suspended a job with Ctrl-Z. How do you resume it in the foreground?",options:["bg %1","fg %1","kill %1","jobs"],answer:1,explain:"Ctrl-Z stops the job (SIGTSTP). fg %1 brings it to the foreground; bg %1 resumes it in the background."}
+    ]},
+  { id:"USE2", title:"Running of Parallel Programs",
+    blurb:"A cluster is shared, so you don't run programs directly — you submit them to a workload manager (SLURM, TORQUE/PBS) that allocates resources and schedules your job fairly. Robust job scripts request exactly what you need and can chain dependent jobs automatically.",
+    outcomes:["Use a workload manager (SLURM/TORQUE) to allocate CPUs, nodes, memory, and time","Submit, monitor, and cancel batch jobs","Write robust job scripts and chain dependent jobs automatically","Run interactive and array jobs"],
+    commands:[["sbatch job.sh","Submit a batch job script to the scheduler"],["#SBATCH --nodes=2","Request resources via directives inside the script"],["#SBATCH --time=01:00:00","Set the wall-clock time limit"],["squeue -u $USER","List your queued and running jobs"],["scancel JOBID","Cancel a queued or running job"],["sacct -j JOBID","Accounting/usage info for a finished job"],["srun / mpirun","Launch the parallel task across the allocation"],["salloc","Request an interactive allocation"],["--dependency=afterok:JID","Start this job only after JID succeeds (chaining)"],["#SBATCH --array=1-10","Submit a job array of 10 tasks"]],
+    questions:[
+      {q:"Why submit work to a scheduler instead of running it directly on a node?",options:["Direct execution is impossible on Linux","The system is shared, so the scheduler queues and fairly allocates resources","It encrypts your job","It compiles your code automatically"],answer:1,explain:"An HPC system serves many users. The workload manager queues jobs and allocates CPUs/nodes/memory/time fairly, preventing users from clobbering each other."},
+      {q:"Which SLURM command submits a batch job script?",options:["squeue","sbatch","sacct","scancel"],answer:1,explain:"sbatch submits a batch script. squeue lists jobs, scancel cancels one, sacct reports accounting data for completed jobs."},
+      {q:"You want job B to start only if job A finishes successfully. Which option?",options:["--array=A-B","--nodes=2","--dependency=afterok:<A>","&"],answer:2,explain:"--dependency=afterok:<jobid> chains B to run only after A completes successfully — the basis of automated job chaining."}
+    ]},
+  { id:"USE3", title:"Building of Parallel Programs",
+    blurb:"Building HPC software means choosing a compiler, setting optimization and parallelization flags, linking the right libraries, and driving it all with a build system. The same source can run far faster — or fail to start — depending on these choices.",
+    outcomes:["Use compilers (GNU, Intel, PGI/NAG) and assess optimization switches","Use the linker and library path options (-L, -l, -rpath, LIBRARY_PATH, LD_LIBRARY_PATH)","Build for a parallelization technique (OpenMP, MPI, OpenACC)","Drive builds with make, Autotools, CMake; link optimized libraries (OpenBLAS, FFTW, MKL)"],
+    commands:[["gcc -O3 -march=native","Compile with aggressive, CPU-tuned optimization"],["mpicc / mpicxx","MPI compiler wrappers (add MPI headers/libs)"],["gcc -fopenmp","Enable OpenMP shared-memory threading"],["-L/path -lfftw3","Add a library search path and link libfftw3"],["-Wl,-rpath,/path","Bake a runtime library search path into the binary"],["export LD_LIBRARY_PATH","Runtime search path for shared libraries"],["cmake .. && make -j","Configure with CMake, then build in parallel"],["./configure && make","Classic Autotools build"]],
+    questions:[
+      {q:"What does the -O3 compiler flag do?",options:["Links the OpenMP runtime","Enables aggressive optimization for speed","Disables all warnings","Adds debug symbols"],answer:1,explain:"-O0..-O3 control optimization level; -O3 is the most aggressive for performance. -g adds debug symbols, -fopenmp enables OpenMP."},
+      {q:"Which flag enables OpenMP threading in GCC?",options:["-lmpi","-O0","-fopenmp","-g"],answer:2,explain:"-fopenmp turns on OpenMP pragma support and links the runtime. MPI uses compiler wrappers (mpicc) instead of a single flag."},
+      {q:"A program compiles but at runtime fails with 'cannot open shared object file'. The usual fix?",options:["Recompile with -O0","Set LD_LIBRARY_PATH (or build with -rpath) so the loader finds the shared library","Run it as root","Add -Wall"],answer:1,explain:"That error means the dynamic loader can't locate a shared library at runtime. Point LD_LIBRARY_PATH at the library directory, or bake the path in at link time with -rpath."}
+    ]},
+  { id:"USE4", title:"Developing Parallel Programs",
+    blurb:"Parallelism unlocks HPC performance but introduces hazards serial code never has — race conditions and deadlocks — and needs specialized debugging and profiling. The two dominant models are MPI (distributed memory, across nodes) and OpenMP (shared memory, within a node).",
+    outcomes:["Code parallel programs using MPI and/or OpenMP","Analyze and debug parallel programs","Articulate synchronization problems: race conditions and deadlocks","Analyze and optimize the performance of parallel applications"],
+    commands:[["#pragma omp parallel","OpenMP: spawn a team of threads"],["MPI_Send / MPI_Recv","MPI: point-to-point message passing"],["OMP_NUM_THREADS=8","Set the OpenMP thread count"],["gdb / cuda-gdb","Interactive debuggers (CPU / GPU)"],["valgrind --tool=helgrind","Detect data races and threading errors"],["DDT / TotalView","Scalable debuggers for many MPI ranks"],["perf / VTune / Score-P","Profilers for hotspots and scaling analysis"]],
+    questions:[
+      {q:"Two threads update the same variable with no synchronization and the result depends on timing. This is a:",options:["Deadlock","Race condition","Memory leak","Segmentation fault"],answer:1,explain:"A race condition is when correctness depends on the unsynchronized timing/interleaving of concurrent accesses. Protect shared state with locks, atomics, or reductions."},
+      {q:"Two processes each wait forever for a message the other never sends. This is a:",options:["Race condition","Cache miss","Deadlock","Buffer overflow"],answer:2,explain:"A deadlock is when parties are stuck waiting on each other so none can proceed — classic with mismatched MPI send/recv ordering."},
+      {q:"Which model is designed for distributed-memory communication across separate nodes?",options:["OpenMP","MPI","bash","SQL"],answer:1,explain:"MPI passes explicit messages between processes that may live on different nodes (distributed memory). OpenMP targets threads sharing memory within one node."}
+    ]},
+  { id:"USE5", title:"Automating Common Tasks",
+    blurb:"Many routine HPC chores — backups, staging data, submitting batches, cleaning scratch — are repetitive and scriptable. Automation with shell scripts and scheduled cron jobs frees your time and reduces mistakes. Know when a quick script beats writing a full program.",
+    outcomes:["Recognize which tasks are worth automating","Create scripts that execute shell commands","Distinguish command types and loop constructs","Judge when a shell script beats a compiled program, and vice versa"],
+    commands:[["crontab -e","Edit your scheduled cron jobs"],["0 2 * * *  cmd","Cron: run cmd every day at 02:00"],["*/15 * * * *","Cron: run every 15 minutes"],["for / while / until","Loop constructs in bash"],["cmd1 && cmd2","Run cmd2 only if cmd1 succeeded"],["cmd1 || cmd2","Run cmd2 only if cmd1 failed"],["test / [ ... ]","Evaluate a condition for branching"]],
+    questions:[
+      {q:"In cron, what does the schedule '0 2 * * *' mean?",options:["Every 2 minutes","Every day at 02:00","On the 2nd of every month","Every 2 hours"],answer:1,explain:"Cron fields are minute hour day-of-month month day-of-week. '0 2 * * *' = minute 0 of hour 2, every day — i.e. daily at 02:00."},
+      {q:"Which task is the best candidate for automation?",options:["A one-off exploratory data analysis","A repetitive, well-defined nightly backup","A creative design decision","Choosing which paper to read"],answer:1,explain:"Automation pays off for repetitive, well-defined, frequently-run tasks. One-off or judgment-heavy work rarely justifies the scripting effort."},
+      {q:"When is a shell script usually the better choice than a compiled program?",options:["For heavy numerical inner loops needing peak performance","For gluing together existing command-line tools in a simple repetitive task","Always — scripts are faster than compiled code","Never — compiled code is always better"],answer:1,explain:"Shell scripts excel at orchestrating existing tools and file operations. Performance-critical numerical kernels belong in compiled languages."}
+    ]},
+  { id:"USE6", title:"Workflow Management Systems",
+    blurb:"A Workflow Management System (Snakemake, Nextflow) orchestrates a multi-step analysis as a dependency graph — staging data, running jobs, cleaning up, producing reports — reproducibly. If a step fails you inspect its logs and restart from that step, not from the beginning.",
+    outcomes:["Explain the purpose and benefits of a Workflow Management System","Select an appropriate workflow from a catalogue","Describe how a WMS ensures reproducibility","Configure a workflow for a system (queues, resources, filesystems)","Diagnose failures via logs and restart from the failed step"],
+    commands:[["snakemake -n","Dry-run: show the planned DAG without executing"],["snakemake --cluster sbatch","Submit each workflow step as a cluster job"],["snakemake --rerun-incomplete","Re-run only steps left incomplete"],["nextflow run pipeline.nf","Run a Nextflow pipeline"],["nextflow run ... -resume","Restart reusing cached completed steps"]],
+    questions:[
+      {q:"What is the primary benefit of a Workflow Management System?",options:["Faster CPU clock speeds","Reproducible, restartable multi-step pipelines with automatic dependency handling","More memory per node","Encryption of your data"],answer:1,explain:"A WMS encodes the steps and their dependencies so the analysis is reproducible, can be re-run consistently, and resumes intelligently after failures."},
+      {q:"A 10-step workflow fails at step 8. What does a good WMS let you do?",options:["Nothing — you must start over manually","Restart from the failed step, reusing the outputs of completed steps","Only re-run step 1","Delete all outputs"],answer:1,explain:"Because the WMS tracks which outputs already exist, it resumes from the failed step and skips work that already succeeded (e.g. Nextflow's -resume)."},
+      {q:"Which of these are workflow management systems commonly used on HPC?",options:["SLURM and TORQUE","Snakemake and Nextflow","gcc and CMake","vim and nano"],answer:1,explain:"Snakemake and Nextflow are common HPC WMS tools. SLURM/TORQUE are schedulers, gcc/CMake are build tools, vim/nano are editors."}
+    ]},
+  { id:"USE7", title:"Post-processing Tools",
+    blurb:"HPC runs produce far more data than a laptop tool can handle. Post-processing turns raw output into insight — reducing, analyzing, and visualizing large datasets with tools built for scale, such as ParaView for 3D visualization and CDO for gridded climate data.",
+    outcomes:["Describe the types of post-processing (reduction, analysis, visualization)","Analyze a post-processing workflow","Use a scalable visualization tool such as ParaView","Use CDO (Climate Data Operators) for gridded datasets"],
+    commands:[["paraview","Large-scale / parallel scientific visualization (GUI)"],["pvbatch script.py","Run ParaView visualization headless in batch"],["cdo info file.nc","CDO: summary of a NetCDF dataset"],["cdo timmean in.nc out.nc","CDO: temporal mean over a dataset"],["ncdump -h file.nc","Inspect NetCDF metadata/headers"],["gnuplot / matplotlib","Plot results into figures"]],
+    questions:[
+      {q:"Why are specialized post-processing tools needed on HPC?",options:["The data is encrypted","Datasets are too large for ordinary desktop tools to load or visualize","HPC output is text only","Desktop tools are not free"],answer:1,explain:"HPC simulations generate datasets that overwhelm desktop software. Tools like ParaView are built to handle (and parallelize) very large data."},
+      {q:"Which tool is designed for large-scale scientific visualization, including in parallel?",options:["vim","ParaView","sbatch","gcc"],answer:1,explain:"ParaView is a scalable visualization application that can run in parallel (and headless via pvbatch) on large simulation output."},
+      {q:"What is CDO (Climate Data Operators) used for?",options:["Compiling code","Scheduling jobs","Operating on gridded climate/NetCDF datasets (e.g. computing means)","Editing text files"],answer:2,explain:"CDO provides hundreds of operators for analyzing and manipulating gridded climate data in formats like NetCDF — selection, statistics, regridding, and more."}
+    ]}
+];
+
+const TOTAL_MODULES = MODULES.length;
+const TOTAL_QUESTIONS = MODULES.reduce((n,m)=>n+m.questions.length,0);
+const NAV_GROUPS = [
+  { label:"USE1 · Cluster Operating System — subskills", ids: MODULES.filter(m=>m.id.startsWith("USE1.")).map(m=>m.id) },
+  { label:"USE2–USE7 · Parallel computing, automation & analysis", ids: MODULES.filter(m=>!m.id.startsWith("USE1.")).map(m=>m.id) }
+];
+
+const KEY = "hpc-use-trainer-v1";
+function loadState(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+function saveState(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+let state = loadState();
+if(!state.selected) state.selected = "USE1.1";
+if(!state.completed) state.completed = {};
+if(!state.answers) state.answers = {}; // key `${id}-${i}` -> chosen index
+
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function stats(){
+  let answered=0, correct=0;
+  MODULES.forEach(m=>m.questions.forEach((q,i)=>{
+    const a = state.answers[m.id+"-"+i];
+    if(a!==undefined && a>=0){ answered++; if(a===q.answer) correct++; }
+  }));
+  return {answered, correct};
+}
+
+function render(){
+  const completedCount = MODULES.filter(m=>state.completed[m.id]).length;
+  const s = stats();
+  const acc = s.answered>0 ? Math.round((s.correct/s.answered)*100) : 0;
+
+  document.getElementById("stats").innerHTML = [
+    statCard(completedCount+"/"+TOTAL_MODULES, "Modules studied", completedCount===TOTAL_MODULES?"good":""),
+    statCard(s.answered+"/"+TOTAL_QUESTIONS, "Questions answered", ""),
+    statCard(String(s.correct), "Correct answers", "good"),
+    statCard(acc+"%", "Quiz accuracy", acc>=80?"good":acc>=50?"warn":s.answered?"bad":"")
+  ].join("");
+
+  document.getElementById("progLeft").textContent = completedCount===TOTAL_MODULES ? "USE branch complete" : "Study progress";
+  document.getElementById("progRight").textContent = completedCount+" / "+TOTAL_MODULES+" modules";
+  document.getElementById("progBar").style.width = (completedCount/TOTAL_MODULES*100)+"%";
+
+  const banner = document.getElementById("banner");
+  if(completedCount===TOTAL_MODULES && s.correct >= TOTAL_QUESTIONS-6){
+    banner.innerHTML = '<div class="banner"><div class="bt">You\'re ready</div>Every module studied and almost every question correct. You\'ve covered the full USE branch — strong foundation for the HPC-CF USE certification.</div>';
+  } else banner.innerHTML = "";
+
+  document.getElementById("nav").innerHTML = NAV_GROUPS.map(g=>(
+    '<div class="navgroup"><div class="lbl">'+esc(g.label)+'</div><div class="pills">'+
+    g.ids.map(id=>{
+      const done = state.completed[id];
+      return '<span class="pill'+(id===state.selected?" active":"")+'" data-id="'+id+'">'+(done?'<span class="check">✓</span>':'')+esc(id)+'</span>';
+    }).join("")+'</div></div>'
+  )).join("");
+
+  renderPanel();
+  saveState();
+}
+
+function statCard(v,l,cls){ return '<div class="stat"><div class="v '+cls+'">'+esc(v)+'</div><div class="l">'+esc(l)+'</div></div>'; }
+
+function renderPanel(){
+  const idx = MODULES.findIndex(m=>m.id===state.selected);
+  const m = MODULES[idx] || MODULES[0];
+  const done = !!state.completed[m.id];
+  const hasNext = idx < MODULES.length-1;
+
+  let html = '<div class="module-head"><h2>'+esc(m.id)+' · '+esc(m.title)+'</h2><span class="spacer"></span>'+
+    '<span class="pill'+(done?" active":"")+'" data-toggle="1">'+(done?"Studied ✓":"Mark as studied")+'</span></div>';
+  html += '<p class="muted" style="margin-bottom:18px">'+esc(m.blurb)+'</p>';
+
+  html += '<h3>Learning outcomes</h3><div style="margin-bottom:18px">'+
+    m.outcomes.map(o=>'<div class="outcome"><span class="arrow">→</span><span>'+esc(o)+'</span></div>').join("")+'</div>';
+
+  html += '<h3>Command cheatsheet</h3><table><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody>'+
+    m.commands.map(c=>'<tr><td><code>'+esc(c[0])+'</code></td><td>'+esc(c[1])+'</td></tr>').join("")+'</tbody></table>';
+
+  html += '<div class="card" style="margin-top:18px"><div class="ch"><span>Check yourself</span><span>'+m.questions.length+' questions</span></div><div class="cb">';
+  html += m.questions.map((q,i)=>renderQ(m.id,i,q)).join('<hr class="divider" />');
+  html += '</div></div>';
+
+  html += '<div style="margin-top:16px;display:flex;gap:8px">'+
+    '<span class="btn '+(done?'':'primary')+'" data-toggle="1">'+(done?"Unmark":"Mark "+esc(m.id)+" studied")+'</span>'+
+    (hasNext?'<span class="btn ghost" data-next="1">Next module →</span>':'')+'</div>';
+
+  document.getElementById("panel").innerHTML = html;
+}
+
+function renderQ(id,i,q){
+  const picked = state.answers[id+"-"+i];
+  const answered = picked!==undefined && picked>=0;
+  const isCorrect = picked===q.answer;
+  let h = '<div class="q"><div class="qt">'+(i+1)+'. '+esc(q.q)+'</div>';
+  h += q.options.map((opt,oi)=>{
+    let cls="opt";
+    if(answered){
+      cls+=" disabled";
+      if(oi===q.answer) cls+=" correct";
+      else if(oi===picked) cls+=" wrong";
+      else cls+=" dim";
+    }
+    let tag="";
+    if(answered && oi===q.answer) tag='<span class="tag c">✓ correct</span>';
+    else if(answered && oi===picked && !isCorrect) tag='<span class="tag w">your pick</span>';
+    const attr = answered ? "" : ' data-q="'+id+'" data-qi="'+i+'" data-oi="'+oi+'"';
+    return '<div class="'+cls+'"'+attr+'><span class="letter">'+String.fromCharCode(65+oi)+'</span><span>'+esc(opt)+'</span>'+tag+'</div>';
+  }).join("");
+  if(answered){
+    h += '<div class="callout '+(isCorrect?"ok":"info")+'"><div class="ct">'+(isCorrect?"Correct":"Not quite")+'</div>'+esc(q.explain)+
+      (isCorrect?'':'<div class="retry"><span class="btn ghost" data-retry="'+id+'-'+i+'">Try again</span></div>')+'</div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+document.addEventListener("click", function(e){
+  const t = e.target.closest("[data-id],[data-q],[data-toggle],[data-next],[data-retry]");
+  if(!t) return;
+  if(t.dataset.id){ state.selected = t.dataset.id; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
+  if(t.dataset.q!==undefined){ state.answers[t.dataset.q+"-"+t.dataset.qi] = parseInt(t.dataset.oi,10); render(); return; }
+  if(t.dataset.toggle){ const id=state.selected; state.completed[id]=!state.completed[id]; render(); return; }
+  if(t.dataset.next){ const idx=MODULES.findIndex(m=>m.id===state.selected); if(idx<MODULES.length-1){ state.selected=MODULES[idx+1].id; render(); window.scrollTo({top:0,behavior:"smooth"});} return; }
+  if(t.dataset.retry){ delete state.answers[t.dataset.retry]; render(); return; }
+});
+
+render();
+</script>
+</body>
+</html>
