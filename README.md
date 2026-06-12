@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # HPC USE Trainer
 
 An interactive study site for the **USE — Use of the HPC Environment** branch of the
@@ -173,3 +174,7 @@ Content is based on the HPC Certification Forum USE skill tree:
 <https://www.hpc-certification.org/wiki/skill-tree/use/>
 
 This is an unofficial study aid and is not affiliated with the HPC Certification Forum.
+=======
+# hpc_interactive_learning
+This is created to provide High-Performance Computing (HPC) interactive learning path for all the system engineers
+>>>>>>> 2ffb93cc0781357b42a9b04b34db5a82b4d6cf9b
