@@ -77,6 +77,16 @@
 
   .outcome { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 6px; }
   .outcome .arrow { color: var(--accent); font-weight: 700; }
+  .lesson-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .lesson-card { background: var(--surface); border: 1px solid var(--stroke); border-radius: 10px; padding: 14px; }
+  .lesson-card p { color: var(--text-2); font-size: 14px; }
+  .lesson-card ul { margin: 8px 0 0 18px; padding: 0; color: var(--text-2); font-size: 14px; }
+  .lesson-card li + li { margin-top: 6px; }
+  .lesson-card .title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); margin-bottom: 8px; font-weight: 700; }
+  .lesson-card.spotlight { background: var(--accent-soft); border-color: #2c548c; }
+  .lesson-card.scenario { border-left: 3px solid var(--accent); }
+  .mistake-list li::marker { color: var(--amber); }
+  .tip-list li::marker { color: var(--green); }
 
   table { width: 100%; border-collapse: collapse; border: 1px solid var(--stroke); border-radius: 10px; overflow: hidden; }
   th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--stroke); font-size: 14px; vertical-align: top; }
@@ -115,6 +125,7 @@
   @media (max-width: 620px) {
     .statgrid { grid-template-columns: repeat(2, 1fr); }
     td:first-child { white-space: normal; }
+    .lesson-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -284,6 +295,205 @@ const NAV_GROUPS = [
   { label:"USE2–USE7 · Parallel computing, automation & analysis", ids: MODULES.filter(m=>!m.id.startsWith("USE1.")).map(m=>m.id) }
 ];
 
+const MODULE_GUIDES = {
+  "USE1.1": {
+    core: "The shell is not just a place to type commands. It is a tiny language that expands variables, globs file names, connects programs with pipes, and decides where output goes before the program even starts.",
+    scenario: "In a real cluster workflow you may search hundreds of log files, extract only failing lines, and redirect the result into a summary file. That is shell composition, not just command memorization.",
+    pitfalls: [
+      "Confusing shell expansion with program behavior, especially with wildcards and variables.",
+      "Overwriting useful files with > when you meant to append with >>.",
+      "Forgetting that hidden files usually do not match * by default."
+    ],
+    practice: [
+      "Practice one pipeline that filters lines and writes the result to a file.",
+      "Use pwd, ls -lah, and cd until the path model feels obvious.",
+      "Read one man page and learn how command documentation is structured."
+    ]
+  },
+  "USE1.2": {
+    core: "A shell script is best when you are orchestrating existing commands rather than building a complex application. The shell shines at file operations, loops, and connecting tools together.",
+    scenario: "Imagine you must submit ten similar jobs, gather their logs, and stop if one critical step fails. That is exactly the repetitive workflow where a shell script saves time and reduces mistakes.",
+    pitfalls: [
+      "Adding spaces around = in assignments.",
+      "Forgetting to quote variables when paths may contain spaces.",
+      "Trying to force shell into doing the work of a real programming language."
+    ],
+    practice: [
+      "Write a script that loops over files and prints their names.",
+      "Add one positional argument and echo it back.",
+      "Add a simple if block so you can see control flow clearly."
+    ]
+  },
+  "USE1.3": {
+    core: "On HPC systems, storage location is a performance and reliability decision. Home, project, and scratch areas exist for different reasons, and using the wrong one can slow jobs or waste quotas.",
+    scenario: "Source code and tiny configs often belong in home or project space. Temporary multi-gigabyte simulation outputs usually belong in scratch because they are high-throughput and often disposable.",
+    pitfalls: [
+      "Putting large transient datasets in home because it feels familiar.",
+      "Confusing relative paths with absolute paths when launching batch jobs.",
+      "Assuming scratch is backed up like home directories often are."
+    ],
+    practice: [
+      "Trace one absolute path and one relative path to the same file.",
+      "Explain where you would store code, inputs, and disposable outputs.",
+      "Treat storage choice as part of job design, not an afterthought."
+    ]
+  },
+  "USE1.4": {
+    core: "Remote access is really three skills combined: secure login, secure identity, and reliable data transfer. SSH handles the first two, while tools like rsync make the third efficient.",
+    scenario: "You log into a cluster, sync input data, edit a script, and forward a local port for a notebook or dashboard. That full flow depends on understanding SSH as more than just login.",
+    pitfalls: [
+      "Mixing up the public and private key.",
+      "Using scp for large repeated transfers when rsync would save time and bandwidth.",
+      "Editing the wrong remote host because you have no ~/.ssh/config aliases."
+    ],
+    practice: [
+      "Generate a key pair and identify which file is safe to upload.",
+      "Write one simple host alias in ~/.ssh/config.",
+      "Compare the user experience of scp versus rsync for a changed directory."
+    ]
+  },
+  "USE1.5": {
+    core: "Modules solve the many-versions-on-one-system problem. Instead of reinstalling software, you alter the shell environment so the right binaries, libraries, and manuals appear first.",
+    scenario: "One project needs GCC and OpenMPI, another needs a different compiler stack. Modules let you switch toolchains cleanly without mutating the whole machine.",
+    pitfalls: [
+      "Loading multiple conflicting toolchains and forgetting what is active.",
+      "Debugging build problems without checking module list first.",
+      "Thinking a module load changes disk state rather than shell state."
+    ],
+    practice: [
+      "Run module avail, module list, and module show on one tool you recognize.",
+      "Load a module, inspect PATH, then unload it and compare.",
+      "Use module purge when you want a clean baseline."
+    ]
+  },
+  "USE1.6": {
+    core: "CLI editors matter because clusters are often text-first environments. Even if you prefer a desktop IDE, you still need terminal editing for quick fixes, job scripts, and config changes over SSH.",
+    scenario: "A batch script fails on a remote node and you need a one-line fix immediately. A terminal editor lets you patch it right there without file transfers or GUI forwarding.",
+    pitfalls: [
+      "Getting trapped in vim insert mode or normal mode because you do not know how to switch.",
+      "Trying to learn every feature instead of a tiny survival subset.",
+      "Forgetting save or quit commands under pressure."
+    ],
+    practice: [
+      "Memorize one safe workflow in nano and one in vim.",
+      "Open a file, change one line, save, and quit without looking it up.",
+      "Treat editor fluency like emergency navigation, not like artistry."
+    ]
+  },
+  "USE1.7": {
+    core: "Multiplexers protect your work from fragile network connections. They separate the life of your remote shell from the life of your laptop connection.",
+    scenario: "You start a long compile or log tail in tmux, close your laptop, reconnect later, and the session is still alive. That is the difference between frustrating remote work and calm remote work.",
+    pitfalls: [
+      "Running long-lived tasks in a plain SSH shell and losing them on disconnect.",
+      "Forgetting to name sessions and later not knowing which one to reattach.",
+      "Confusing terminal tabs with persistent remote sessions."
+    ],
+    practice: [
+      "Create a tmux session, detach, list sessions, and reattach.",
+      "Name sessions after the task you are doing.",
+      "Use tmux first for anything you would hate to restart."
+    ]
+  },
+  "USE1.8": {
+    core: "Job control is about process state and signals. The shell can suspend, background, foreground, and interrupt processes, but each signal has a different meaning and level of force.",
+    scenario: "You start a command, realize you need your prompt back, suspend it with Ctrl-Z, resume it in the background, then bring it forward again when you want to watch output.",
+    pitfalls: [
+      "Using kill -9 immediately instead of trying cleaner signals first.",
+      "Forgetting that jobs only shows processes started from the current shell.",
+      "Mixing up Ctrl-C and Ctrl-Z."
+    ],
+    practice: [
+      "Start a harmless sleep command and practice Ctrl-Z, bg, jobs, and fg.",
+      "Explain the difference between SIGTERM and SIGKILL in your own words.",
+      "Use nohup only when you truly want work to survive logout."
+    ]
+  },
+  "USE2": {
+    core: "Schedulers exist because clusters are shared resources. Instead of run now, you describe what the job needs and the scheduler decides when and where it should run fairly and safely.",
+    scenario: "A job script is a contract: how many CPUs, how much time, how much memory, and what command to launch. The scheduler enforces that contract and records what happened.",
+    pitfalls: [
+      "Requesting too much time or memory and waiting longer in queue than necessary.",
+      "Running compute-heavy work on login nodes instead of through the scheduler.",
+      "Ignoring scheduler output and accounting info after a failed run."
+    ],
+    practice: [
+      "Read a simple sbatch script line by line and explain each directive.",
+      "Follow one job from submission to queue to completion using squeue and sacct.",
+      "Write one dependency chain where post-processing waits for the main run."
+    ]
+  },
+  "USE3": {
+    core: "Building HPC software is a pipeline: choose toolchain, choose optimization level, locate the right libraries, and encode the whole flow in a repeatable build system. Performance and correctness both depend on it.",
+    scenario: "The same source can build with GCC or Intel, with or without OpenMP, and against different BLAS libraries. Those choices affect both speed and whether the binary runs at all.",
+    pitfalls: [
+      "Treating linker errors and runtime loader errors as the same thing.",
+      "Using optimization flags without realizing they can complicate debugging.",
+      "Forgetting that MPI compiler wrappers hide include and library details for you."
+    ],
+    practice: [
+      "Compile one tiny program with and without -O3 and compare the command.",
+      "Link one program against a shared library and trace how the loader finds it.",
+      "Read a simple CMakeLists.txt or Makefile and identify the build stages."
+    ]
+  },
+  "USE4": {
+    core: "Parallel programming is not just faster code. It changes the correctness model. Once multiple threads or processes cooperate, ordering, synchronization, communication, and load balance all matter.",
+    scenario: "OpenMP is often a good first step within one node because threads share memory. MPI scales across nodes but requires explicit messages, making data motion and ordering your responsibility.",
+    pitfalls: [
+      "Assuming code that works once is correct even if the timing changes.",
+      "Not distinguishing shared-memory bugs from distributed-memory communication bugs.",
+      "Optimizing before you profile and understand the actual bottleneck."
+    ],
+    practice: [
+      "Describe the difference between race conditions and deadlocks without notes.",
+      "Name one situation where OpenMP is simpler than MPI and one where MPI is required.",
+      "Treat debugging and profiling as part of development, not as a late add-on."
+    ]
+  },
+  "USE5": {
+    core: "Automation removes repeated human decisions from routine operations. If the steps are frequent, predictable, and checkable, you probably want a script or schedule.",
+    scenario: "Nightly cleanup, recurring transfers, job submission wrappers, and backup tasks are ideal candidates because they are repetitive and expensive to do manually every time.",
+    pitfalls: [
+      "Automating something you still do not understand manually.",
+      "Writing a shell script for a problem that really needs a program with data structures.",
+      "Scheduling jobs with cron without considering environment and path differences."
+    ],
+    practice: [
+      "Turn one repeated command sequence into a script.",
+      "Add logging or echo statements so you can see what automation is doing.",
+      "Ask whether the task is command orchestration or real software logic."
+    ]
+  },
+  "USE6": {
+    core: "A workflow manager captures not just commands but dependencies, inputs, outputs, and restart logic. That is why it is central to reproducible research and large data pipelines.",
+    scenario: "If step 8 fails after step 1 through 7 succeeded, you do not want to rerun everything by hand. A workflow tool knows what is already valid and what must be repeated.",
+    pitfalls: [
+      "Using ad hoc scripts for multi-stage pipelines that really need explicit dependencies.",
+      "Ignoring logs and provenance, which are the whole point of workflow tooling.",
+      "Hard-coding cluster-specific choices instead of parameterizing queues and resources."
+    ],
+    practice: [
+      "Explain in plain language what makes a workflow reproducible.",
+      "Run a dry-run command and interpret the planned graph.",
+      "Learn the resume or rerun-from-failure flag of one workflow tool."
+    ]
+  },
+  "USE7": {
+    core: "Post-processing is where raw HPC output becomes useful meaning. The data volume often forces you to use specialized tools and staged workflows rather than casual desktop inspection.",
+    scenario: "A simulation may finish correctly, but the value arrives when you reduce the data, compute derived quantities, and visualize the result in a scalable way.",
+    pitfalls: [
+      "Trying to open huge outputs in tools meant for tiny desktop datasets.",
+      "Skipping metadata inspection and not understanding what dimensions and variables mean.",
+      "Treating visualization as separate from analysis instead of part of the full workflow."
+    ],
+    practice: [
+      "Inspect one dataset header before touching the data itself.",
+      "Name the difference between reduction, analysis, and visualization.",
+      "Think of post-processing as a pipeline, not a single click."
+    ]
+  }
+};
+
 const KEY = "hpc-use-trainer-v1";
 function loadState(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
 function saveState(){ localStorage.setItem(KEY, JSON.stringify(state)); }
@@ -343,6 +553,7 @@ function renderPanel(){
   const m = MODULES[idx] || MODULES[0];
   const done = !!state.completed[m.id];
   const hasNext = idx < MODULES.length-1;
+  const guide = MODULE_GUIDES[m.id];
 
   let html = '<div class="module-head"><h2>'+esc(m.id)+' · '+esc(m.title)+'</h2><span class="spacer"></span>'+
     '<span class="pill'+(done?" active":"")+'" data-toggle="1">'+(done?"Studied ✓":"Mark as studied")+'</span></div>';
@@ -350,6 +561,17 @@ function renderPanel(){
 
   html += '<h3>Learning outcomes</h3><div style="margin-bottom:18px">'+
     m.outcomes.map(o=>'<div class="outcome"><span class="arrow">→</span><span>'+esc(o)+'</span></div>').join("")+'</div>';
+
+  if(guide){
+    html += '<h3>Study lesson</h3><div class="lesson-grid">';
+    html += '<div class="lesson-card spotlight"><div class="title">Core idea</div><p>'+esc(guide.core)+'</p></div>';
+    html += '<div class="lesson-card scenario"><div class="title">Real HPC scenario</div><p>'+esc(guide.scenario)+'</p></div>';
+    html += '<div class="lesson-card"><div class="title">Common mistakes</div><ul class="mistake-list">'+
+      guide.pitfalls.map(item=>'<li>'+esc(item)+'</li>').join("")+'</ul></div>';
+    html += '<div class="lesson-card"><div class="title">How to practice it</div><ul class="tip-list">'+
+      guide.practice.map(item=>'<li>'+esc(item)+'</li>').join("")+'</ul></div>';
+    html += '</div>';
+  }
 
   html += '<h3>Command cheatsheet</h3><table><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody>'+
     m.commands.map(c=>'<tr><td><code>'+esc(c[0])+'</code></td><td>'+esc(c[1])+'</td></tr>').join("")+'</tbody></table>';
