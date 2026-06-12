@@ -121,6 +121,8 @@
 
   .banner { background: var(--green-soft); border: 1px solid #1f6b2b; border-radius: 12px; padding: 14px 16px; margin: 16px 0; }
   .banner .bt { font-weight: 700; margin-bottom: 4px; }
+  .banner.info { background: var(--accent-soft); border-color: #2c548c; }
+  .banner.warn { background: #3b3115; border-color: var(--amber); }
   .hero-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
   .hero-link { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--text);
     background: var(--surface); border: 1px solid var(--stroke); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
@@ -129,11 +131,27 @@
   .intro-card ul { margin: 8px 0 0 18px; padding: 0; color: var(--text-2); }
   .intro-card li + li { margin-top: 6px; }
   .noscript { background: #3a1a1a; border: 1px solid var(--red); border-radius: 10px; padding: 12px 14px; margin: 16px 0; color: var(--text); }
+  .reward-card { background: var(--surface); border: 1px solid var(--stroke); border-radius: 12px; padding: 14px 16px; margin: 18px 0; }
+  .reward-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 8px; }
+  .reward-title { font-size: 16px; font-weight: 700; }
+  .reward-pill { display: inline-flex; align-items: center; border: 1px solid var(--stroke); border-radius: 999px; padding: 4px 10px; font-size: 12px; color: var(--text-2); background: var(--surface-2); }
+  .reward-pill.good { border-color: #1f6b2b; background: var(--green-soft); color: #dff7e3; }
+  .reward-pill.info { border-color: #2c548c; background: var(--accent-soft); color: #e2ecff; }
+  .reward-copy { color: var(--text-2); margin-bottom: 10px; }
+  .mini-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 10px; }
+  .mini-stat { background: var(--surface-2); border: 1px solid var(--stroke); border-radius: 10px; padding: 10px 12px; }
+  .mini-stat .v { font-size: 18px; font-weight: 700; }
+  .mini-stat .l { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+  .progress-bar-sm { height: 8px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+  .progress-bar-sm > i { display: block; height: 100%; background: var(--accent); }
+  .reward-list { margin: 10px 0 0 18px; padding: 0; color: var(--text-2); }
+  .reward-list li + li { margin-top: 6px; }
 
   @media (max-width: 620px) {
     .statgrid { grid-template-columns: repeat(2, 1fr); }
     td:first-child { white-space: normal; }
     .lesson-grid { grid-template-columns: 1fr; }
+    .mini-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -147,6 +165,7 @@
     <div class="hero-links">
       <a class="hero-link" href="https://github.com/maharshiaekkati/hpc_interactive_learning" target="_blank" rel="noopener">Source on GitHub</a>
       <a class="hero-link" href="https://www.hpc-certification.org/wiki/skill-tree/use/" target="_blank" rel="noopener">HPC-CF USE skill tree</a>
+      <span class="hero-link" data-reset="1" role="button">Reset my progress</span>
     </div>
   </header>
 
@@ -525,11 +544,50 @@ const KEY = "hpc-use-trainer-v1";
 function loadState(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
 function saveState(){ localStorage.setItem(KEY, JSON.stringify(state)); }
 let state = loadState();
-if(!state.selected) state.selected = "USE1.1";
-if(!state.completed) state.completed = {};
-if(!state.answers) state.answers = {}; // key `${id}-${i}` -> chosen index
+if(!state.selected || !MODULES.some(m=>m.id===state.selected)) state.selected = "USE1.1";
+if(!state.completed || typeof state.completed !== "object") state.completed = {};
+if(!state.answers || typeof state.answers !== "object") state.answers = {}; // key `${id}-${i}` -> chosen index
+if(!state.viewed || typeof state.viewed !== "object") state.viewed = {};
+state.viewed[state.selected] = true;
 
 function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function moduleProgress(moduleId){
+  const m = MODULES.find(x=>x.id===moduleId);
+  if(!m) return { answered: 0, correct: 0, total: 0, mastered: false };
+  let answered = 0, correct = 0;
+  m.questions.forEach((q,i)=>{
+    const a = state.answers[moduleId+"-"+i];
+    if(a!==undefined && a>=0){
+      answered += 1;
+      if(a===q.answer) correct += 1;
+    }
+  });
+  return { answered, correct, total: m.questions.length, mastered: correct === m.questions.length };
+}
+
+function masteredCount(){
+  return MODULES.filter(m=>moduleProgress(m.id).mastered).length;
+}
+
+function xpTotal(){
+  const completed = MODULES.filter(m=>state.completed[m.id]).length;
+  const correct = stats().correct;
+  const mastered = masteredCount();
+  return (completed * 100) + (correct * 10) + (mastered * 25);
+}
+
+function topBannerHtml(completedCount, s){
+  const mastered = masteredCount();
+  const nextMilestone = completedCount < 3 ? 3 : completedCount < 7 ? 7 : TOTAL_MODULES;
+  if(completedCount===TOTAL_MODULES && s.correct >= TOTAL_QUESTIONS-6){
+    return '<div class="banner"><div class="bt">You\\'re ready</div>Every module is complete and your quiz accuracy is strong. You now have a solid USE-branch study base for the HPC-CF certification path.</div>';
+  }
+  if(mastered > 0 && completedCount < TOTAL_MODULES){
+    return '<div class="banner info"><div class="bt">Momentum is building</div>You have mastered '+mastered+' module quiz'+(mastered===1?'':'zes')+' so far. Next milestone: complete '+nextMilestone+' modules.</div>';
+  }
+  return '<div class="banner warn"><div class="bt">Start with one module</div>Pick any module below, read the study lesson, and aim for your first full quiz mastery. Small wins compound fast here.</div>';
+}
 
 function stats(){
   let answered=0, correct=0;
@@ -544,11 +602,13 @@ function render(){
   const completedCount = MODULES.filter(m=>state.completed[m.id]).length;
   const s = stats();
   const acc = s.answered>0 ? Math.round((s.correct/s.answered)*100) : 0;
+  const mastered = masteredCount();
+  const xp = xpTotal();
 
   document.getElementById("stats").innerHTML = [
     statCard(completedCount+"/"+TOTAL_MODULES, "Modules studied", completedCount===TOTAL_MODULES?"good":""),
-    statCard(s.answered+"/"+TOTAL_QUESTIONS, "Questions answered", ""),
-    statCard(String(s.correct), "Correct answers", "good"),
+    statCard(mastered+"/"+TOTAL_MODULES, "Quiz mastery", mastered ? "good" : ""),
+    statCard(String(xp), "Momentum XP", xp ? "good" : ""),
     statCard(acc+"%", "Quiz accuracy", acc>=80?"good":acc>=50?"warn":s.answered?"bad":"")
   ].join("");
 
@@ -557,9 +617,7 @@ function render(){
   document.getElementById("progBar").style.width = (completedCount/TOTAL_MODULES*100)+"%";
 
   const banner = document.getElementById("banner");
-  if(completedCount===TOTAL_MODULES && s.correct >= TOTAL_QUESTIONS-6){
-    banner.innerHTML = '<div class="banner"><div class="bt">You\'re ready</div>Every module studied and almost every question correct. You\'ve covered the full USE branch — strong foundation for the HPC-CF USE certification.</div>';
-  } else banner.innerHTML = "";
+  banner.innerHTML = topBannerHtml(completedCount, s);
 
   document.getElementById("nav").innerHTML = NAV_GROUPS.map(g=>(
     '<div class="navgroup"><div class="lbl">'+esc(g.label)+'</div><div class="pills">'+
@@ -574,6 +632,56 @@ function render(){
 }
 
 function statCard(v,l,cls){ return '<div class="stat"><div class="v '+cls+'">'+esc(v)+'</div><div class="l">'+esc(l)+'</div></div>'; }
+
+function moduleRewardBlock(m, done){
+  const p = moduleProgress(m.id);
+  const pct = p.total ? Math.round((p.correct / p.total) * 100) : 0;
+  let status = "Fresh start";
+  let statusClass = "";
+  let copy = "Read the lesson, try the quiz, and build momentum one correct answer at a time.";
+  let nextSteps = [
+    "Aim for all correct answers once and let the module completion lock in automatically.",
+    "Use the explanation cards to turn mistakes into memory.",
+    "Move to the next module while the context is still warm."
+  ];
+
+  if(p.answered > 0){
+    status = p.mastered ? "Quiz mastered" : "In progress";
+    statusClass = p.mastered ? "good" : "info";
+    copy = p.mastered
+      ? (done
+          ? "Excellent work. You mastered this quiz and locked in this module as complete."
+          : "Nice work. You mastered the quiz for this module and your completion reward is ready.")
+      : "You have already started this module. Keep going until every question is correct and the ideas feel automatic.";
+  }
+
+  if(done && !p.mastered){
+    copy = "This module is marked complete, but you still have room to strengthen quiz mastery. A quick revisit can upgrade the result.";
+    nextSteps = [
+      "Retake any weak quiz items until they all turn green.",
+      "Review the common mistakes list before trying again.",
+      "Use the command cheatsheet as a final memory pass."
+    ];
+  } else if(done && p.mastered){
+    nextSteps = [
+      "Treat this as a reusable building block for the rest of the USE path.",
+      "Move on while the confidence is high and stack the next win.",
+      "Come back later only for spaced repetition."
+    ];
+  }
+
+  return '<div class="reward-card">' +
+    '<div class="reward-head"><div class="reward-title">Module momentum</div><span class="reward-pill '+statusClass+'">'+esc(status)+'</span></div>' +
+    '<div class="reward-copy">'+esc(copy)+'</div>' +
+    '<div class="mini-grid">' +
+      '<div class="mini-stat"><div class="v">'+p.correct+'/'+p.total+'</div><div class="l">Correct answers</div></div>' +
+      '<div class="mini-stat"><div class="v">'+pct+'%</div><div class="l">Mastery score</div></div>' +
+      '<div class="mini-stat"><div class="v">'+(done ? "100" : (p.mastered ? "100" : String(p.correct * 10)))+'</div><div class="l">Completion energy</div></div>' +
+    '</div>' +
+    '<div class="progress-bar-sm"><i style="width:'+pct+'%"></i></div>' +
+    '<ul class="reward-list">' + nextSteps.map(item=>'<li>'+esc(item)+'</li>').join("") + '</ul>' +
+  '</div>';
+}
 
 function renderPanel(){
   const idx = MODULES.findIndex(m=>m.id===state.selected);
@@ -599,6 +707,8 @@ function renderPanel(){
       guide.practice.map(item=>'<li>'+esc(item)+'</li>').join("")+'</ul></div>';
     html += '</div>';
   }
+
+  html += moduleRewardBlock(m, done);
 
   html += '<h3>Command cheatsheet</h3><table><thead><tr><th>Command</th><th>What it does</th></tr></thead><tbody>'+
     m.commands.map(c=>'<tr><td><code>'+esc(c[0])+'</code></td><td>'+esc(c[1])+'</td></tr>').join("")+'</tbody></table>';
@@ -642,13 +752,20 @@ function renderQ(id,i,q){
 }
 
 document.addEventListener("click", function(e){
-  const t = e.target.closest("[data-id],[data-q],[data-toggle],[data-next],[data-retry]");
+  const t = e.target.closest("[data-id],[data-q],[data-toggle],[data-next],[data-retry],[data-reset]");
   if(!t) return;
-  if(t.dataset.id){ state.selected = t.dataset.id; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
-  if(t.dataset.q!==undefined){ state.answers[t.dataset.q+"-"+t.dataset.qi] = parseInt(t.dataset.oi,10); render(); return; }
+  if(t.dataset.id){ state.selected = t.dataset.id; state.viewed[state.selected] = true; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
+  if(t.dataset.q!==undefined){
+    state.answers[t.dataset.q+"-"+t.dataset.qi] = parseInt(t.dataset.oi,10);
+    const progress = moduleProgress(t.dataset.q);
+    if(progress.mastered){ state.completed[t.dataset.q] = true; }
+    render();
+    return;
+  }
   if(t.dataset.toggle){ const id=state.selected; state.completed[id]=!state.completed[id]; render(); return; }
-  if(t.dataset.next){ const idx=MODULES.findIndex(m=>m.id===state.selected); if(idx<MODULES.length-1){ state.selected=MODULES[idx+1].id; render(); window.scrollTo({top:0,behavior:"smooth"});} return; }
+  if(t.dataset.next){ const idx=MODULES.findIndex(m=>m.id===state.selected); if(idx<MODULES.length-1){ state.selected=MODULES[idx+1].id; state.viewed[state.selected] = true; render(); window.scrollTo({top:0,behavior:"smooth"});} return; }
   if(t.dataset.retry){ delete state.answers[t.dataset.retry]; render(); return; }
+  if(t.dataset.reset){ localStorage.removeItem(KEY); state = { selected: "USE1.1", completed: {}, answers: {}, viewed: {} }; render(); return; }
 });
 
 render();
