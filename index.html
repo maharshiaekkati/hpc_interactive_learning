@@ -581,7 +581,7 @@ function topBannerHtml(completedCount, s){
   const mastered = masteredCount();
   const nextMilestone = completedCount < 3 ? 3 : completedCount < 7 ? 7 : TOTAL_MODULES;
   if(completedCount===TOTAL_MODULES && s.correct >= TOTAL_QUESTIONS-6){
-    return '<div class="banner"><div class="bt">You\\'re ready</div>Every module is complete and your quiz accuracy is strong. You now have a solid USE-branch study base for the HPC-CF certification path.</div>';
+    return '<div class="banner"><div class="bt">You\'re ready</div>Every module is complete and your quiz accuracy is strong. You now have a solid USE-branch study base for the HPC-CF certification path.</div>';
   }
   if(mastered > 0 && completedCount < TOTAL_MODULES){
     return '<div class="banner info"><div class="bt">Momentum is building</div>You have mastered '+mastered+' module quiz'+(mastered===1?'':'zes')+' so far. Next milestone: complete '+nextMilestone+' modules.</div>';
