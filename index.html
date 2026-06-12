@@ -121,6 +121,14 @@
 
   .banner { background: var(--green-soft); border: 1px solid #1f6b2b; border-radius: 12px; padding: 14px 16px; margin: 16px 0; }
   .banner .bt { font-weight: 700; margin-bottom: 4px; }
+  .hero-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .hero-link { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--text);
+    background: var(--surface); border: 1px solid var(--stroke); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+  .hero-link:hover { border-color: var(--accent); color: #fff; }
+  .intro-card { background: var(--surface); border: 1px solid var(--stroke); border-radius: 12px; padding: 14px 16px; margin: 18px 0 10px; }
+  .intro-card ul { margin: 8px 0 0 18px; padding: 0; color: var(--text-2); }
+  .intro-card li + li { margin-top: 6px; }
+  .noscript { background: #3a1a1a; border: 1px solid var(--red); border-radius: 10px; padding: 12px 14px; margin: 16px 0; color: var(--text); }
 
   @media (max-width: 620px) {
     .statgrid { grid-template-columns: repeat(2, 1fr); }
@@ -136,7 +144,26 @@
     <p class="muted">A complete interactive trainer for the HPC Certification Forum
       <strong>USE</strong> competency branch — USE1 Cluster OS (its 8 subskills) through
       USE7 Post-processing. Work through every module, drill the commands, and pass each quiz.</p>
+    <div class="hero-links">
+      <a class="hero-link" href="https://github.com/maharshiaekkati/hpc_interactive_learning" target="_blank" rel="noopener">Source on GitHub</a>
+      <a class="hero-link" href="https://www.hpc-certification.org/wiki/skill-tree/use/" target="_blank" rel="noopener">HPC-CF USE skill tree</a>
+    </div>
   </header>
+
+  <noscript>
+    <div class="noscript">
+      This study site needs JavaScript enabled for the interactive navigation, quizzes, and progress tracking.
+    </div>
+  </noscript>
+
+  <div class="intro-card">
+    <strong>How to use this trainer</strong>
+    <ul>
+      <li>Pick a module below, read the lesson and scenario first, then use the command cheatsheet.</li>
+      <li>Take the quiz after each module and use the explanations to correct mistakes.</li>
+      <li>Your progress is saved in your own browser, so you can come back later.</li>
+    </ul>
+  </div>
 
   <div class="statgrid" id="stats"></div>
   <div>

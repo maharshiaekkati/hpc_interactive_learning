@@ -1,9 +1,18 @@
-<<<<<<< HEAD
 # HPC USE Trainer
 
 An interactive study site for the **USE — Use of the HPC Environment** branch of the
 [HPC Certification Forum](https://www.hpc-certification.org/) skill tree
 (`USE1` through `USE7`).
+
+## Live interactive site
+
+Use the trainer here:
+
+- **Live site:** <https://maharshiaekkati.github.io/hpc_interactive_learning/>
+- **Source repo:** <https://github.com/maharshiaekkati/hpc_interactive_learning>
+
+Important: viewing `index.html` inside the normal GitHub code browser only shows the
+source file. The actual interactive site runs through **GitHub Pages** at the live URL above.
 
 The app is intentionally simple:
 
@@ -72,7 +81,7 @@ Windows environment stays work-only:
 Run in Windows PowerShell:
 
 ```powershell
-wsl --install -d Ubuntu-24.04
+wsl --install -d Ubuntu-26.04
 ```
 
 Then launch Ubuntu and install git:
@@ -129,7 +138,7 @@ Then add that public key on **github.com** under:
 ssh -T git@github.com
 ```
 
-You should get a successful authentication message from GitHub.
+If your network blocks SSH-over-443, use the HTTPS remote workflow below instead.
 
 ### 5. Move this project into your personal WSL folder
 
@@ -141,14 +150,30 @@ cp -r /mnt/c/Users/mreddyae/hpc-use-trainer ~/personal/github/hpc-use-trainer
 cd ~/personal/github/hpc-use-trainer
 ```
 
-### 6. Create the GitHub repo and push
+### 6. Connect to GitHub and push
 
-Create an empty public repo on github.com named `hpc-use-trainer`, then:
+For this project, the public repo is:
+
+```text
+maharshiaekkati/hpc_interactive_learning
+```
+
+If SSH works:
 
 ```bash
-git remote add origin git@github.com:YOUR_GITHUB_USERNAME/hpc-use-trainer.git
+git remote add origin git@github.com:maharshiaekkati/hpc_interactive_learning.git
 git push -u origin main
 ```
+
+If your network resets SSH, use HTTPS instead:
+
+```bash
+git remote add origin https://github.com/maharshiaekkati/hpc_interactive_learning.git
+git config --global credential.helper 'cache --timeout=28800'
+git push -u origin main
+```
+
+With HTTPS, use your GitHub username and a **Personal Access Token** when prompted.
 
 ### 7. Publish with GitHub Pages
 
@@ -164,7 +189,7 @@ In the repo:
 Your site will be available at:
 
 ```text
-https://YOUR_GITHUB_USERNAME.github.io/hpc-use-trainer/
+https://maharshiaekkati.github.io/hpc_interactive_learning/
 ```
 
 ## Source
@@ -174,7 +199,3 @@ Content is based on the HPC Certification Forum USE skill tree:
 <https://www.hpc-certification.org/wiki/skill-tree/use/>
 
 This is an unofficial study aid and is not affiliated with the HPC Certification Forum.
-=======
-# hpc_interactive_learning
-This is created to provide High-Performance Computing (HPC) interactive learning path for all the system engineers
->>>>>>> 2ffb93cc0781357b42a9b04b34db5a82b4d6cf9b
